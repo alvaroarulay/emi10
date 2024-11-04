@@ -1,7 +1,17 @@
 <template>
     <main class="app-content">
-      <div class="app-title">
-            <h1><i class="bi bi-fast-forward-btn-fill"></i> Inventario Rápido</h1>
+      <div class="app-title row">
+                <div class="col-md-8">
+                    <h1><i class="bi bi-collection"></i> Unidad: {{ titulo }}</h1> 
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" @change="onChangeUnidad($event)" v-model="idunidad" v-if="idrol==1">
+                        <option v-for="unidad in arrayUnidad" :value="unidad.unidad" v-text="unidad.descrip"></option>
+                    </select>
+                </div>
+        </div>
+      <div class="app-title row">
+        <h1><i class="bi bi-collection"></i> Inventario Rápido</h1> 
       </div>
       <div class="row card shadow-lg border-0 rounded-lg mt-5">
         <h5 class="text-start font-weight-light my-4">Responsable</h5>
@@ -295,6 +305,12 @@ import axios from 'axios';
 export default {
   data() {
     return {
+      arrayUnidad:[],
+      idunidad:'',
+      unidad:'',
+      idrol:0,
+      titulo:'',
+
       pdf:'',
       modalpdf:0,
       ci:'',
@@ -357,9 +373,15 @@ export default {
                 }
             },
   methods: {
+    onChangeUnidad(event){
+        this.arrayArticulo = [];
+        this.idunidad=(event.target.value);
+        const res = this.arrayUnidad.find((unidad) => unidad.unidad == this.idunidad);
+        this.titulo= res.descrip;
+    },
     buscarResponsable(){
         let me=this;
-        var url= '/responsable/buscarResponsable?filtro=' + me.ci;
+        var url= '/responsable/buscarResponsable?filtro=' + me.ci + '&unidad='+ this.idunidad;
 
         axios.get(url).then((response)=>{
             me.arrayResponsable = response.data.responsable;
@@ -380,11 +402,13 @@ export default {
     },
     listarResponsable(page,buscar,criterio){
         let me=this;
-        var url= '/responsable/?page=' + page + '&buscar='+ buscar + '&criterio='+ criterio;
+        var url= '/responsable/?page=' + page + '&buscar='+ buscar + '&criterio='+ criterio + '&unidad='+ this.idunidad;
         axios.get(url).then( (response) =>{
             var respuesta = response.data;
             me.arrayResponsableTodos = respuesta.responsables.data;
+            me.idrol = respuesta.idrol;
             me.pagination= respuesta.pagination;
+            me.unidad = respuesta.titulo;
         })
         .catch( (error) =>{
             console.log(error);
@@ -518,7 +542,7 @@ export default {
               'codofic2' : me.codofic,
           }).then((response)=>{
             let me = this;
-            me.pdf =('http://200.105.132.229:8080/actual/repAsignaciones?codofic=' + me.codofic + '&codresp='+ me.codresp +  '');
+            me.pdf =('http://emi.test/actual/repAsignaciones?codofic=' + me.codofic + '&codresp='+ me.codresp +  '');
             me.modalpdf = 1;
             swal.fire('Datos Guardados',response.message,'success');
             me.reset();
@@ -554,10 +578,26 @@ export default {
       me.buscar= ''; 
       me.criterio2 = 'descripcion';
       me.buscar = '';
-    }
+    },
+    listarUnidad (){
+            let me=this;
+            var url= '/unidad/select';
+            axios.get(url).then( (response) =>{
+            var respuesta= response.data;
+            me.arrayUnidad = respuesta.unidad;
+            me.unidad = respuesta.descripcion;
+            me.idunidad = respuesta.idunidad;
+            me.idrol = respuesta.idrol;
+            me.titulo = respuesta.titulo;
+        })
+        .catch( (error)=> {
+            console.log(error);
+        });
+    },
   },
   mounted() {
-   
+    this.listarUnidad();
+    
   }
 }
 </script>

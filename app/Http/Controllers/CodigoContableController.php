@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\CodigoContable;
 use App\Models\Auxiliares;
 use App\Models\Unidadadmin;
+use App\Models\Responsables;
 use XBase\TableCreator;
 use XBase\TableEditor;
 use XBase\TableReader;
@@ -15,13 +16,37 @@ class CodigoContableController extends Controller
 {
     public function index(Request $request)
     {
-        $unidad = $request->id;
-        $codigos = CodigoContable::join('actual','codcont.codcont','=','actual.codcont')
-        ->select('codcont.id','codcont.codcont','codcont.nombre','codcont.vidautil')
-        ->where('unidad','=',$unidad)
-        ->distinct('codcont.codcont')
-        ->get();
-        return [ 'codigos' => $codigos ];
+        $idrol = \Auth::user()->idrol;
+        $unidad = Responsables::select('unidad')->where('codresp','=',\Auth::user()->codresp)->where('codofic','=',\Auth::user()->codofic)->first();
+        $a = Unidadadmin::select('descrip')->where('unidad','=',$unidad->unidad)->first();
+        $b = Unidadadmin::select('ciudad')->where('unidad','=',$unidad->unidad)->first();
+        $titulo = $a->descrip.' - '.$b->ciudad;
+        $unidadv = $request->id;
+        if($idrol == 1){
+            if($unidadv == ''){
+                $codigos = CodigoContable::join('actual','codcont.codcont','=','actual.codcont')
+                ->select('codcont.id','codcont.codcont','codcont.nombre','codcont.vidautil')
+                ->distinct()
+                ->where('actual.unidad','=',$unidad->unidad)
+                ->get();
+            return [ 'codigos' => $codigos, 'unidad'=>$unidad->unidad];
+            }else{
+            $codigos = CodigoContable::join('actual','codcont.codcont','=','actual.codcont')
+                ->select('codcont.id','codcont.codcont','codcont.nombre','codcont.vidautil')
+                ->where('actual.unidad','=',$unidadv)
+                ->distinct()
+                ->get();
+            return [ 'codigos' => $codigos, 'unidad'=>$unidad->unidad, 'idrol' =>$idrol];}
+        }else{
+            $codigos = CodigoContable::join('actual','codcont.codcont','=','actual.codcont')
+                ->select('codcont.id','codcont.codcont','codcont.nombre','codcont.vidautil')
+                ->where('actual.unidad','=',$unidad->unidad)
+                ->distinct()
+                ->get();
+            return [ 'codigos' => $codigos, 'unidad'=>$unidad->unidad];
+        }
+
+        
     }
     public function auxiliar(Request $request){
         if(isset($request->id)){

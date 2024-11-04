@@ -280,7 +280,7 @@ export default {
       }
       else{
         let me = this;
-        window.open('http://200.105.132.229:8080/actual/repDevoluciones?codofic=' + me.cod_ofi + '&codresp='+ me.cod_resp +  '','_blank');
+        window.open('http://emi.test/actual/repDevoluciones?codofic=' + me.cod_ofi + '&codresp='+ me.cod_resp +  '','_blank');
       }
     }
   },

@@ -2,10 +2,10 @@
     <main class="app-content">
          <div class="app-title row">
              <div class="col-md-8">
-                <h1><i class="bi bi-collection"></i> Unidad: <p v-text="unidad"></p></h1> 
+                <h1><i class="bi bi-collection"></i> Unidad: <p v-text="titulo"></p></h1> 
              </div>
              <div class="col-md-4">
-                 <select class="form-select" @change="onChangeUnidad($event)" v-model="idunidad">
+                 <select class="form-select" @change="onChangeUnidad($event)" v-model="idunidad" v-if="idrol==1">
                      <option v-for="unidad in arrayUnidad" :value="unidad.unidad" v-text="unidad.descrip"></option>
                  </select>
              </div>
@@ -57,7 +57,7 @@
                     <h3><i class="bi bi-calculator"></i> Auxiliares</h3>
                 </div>
                 <div class="col-md-2">
-                    <button type="submit" @click="revisarNuevos()" class="btn btn-primary"><i class="bi bi-arrow-clockwise"></i> Actualizar Datos</button>
+                    <button type="submit" @click="revisarNuevos()" class="btn btn-primary" v-if="idrol==1"><i class="bi bi-arrow-clockwise"></i> Actualizar Datos</button>
                 </div>
              </div>
                 <div class="row mb-3">
@@ -253,8 +253,10 @@ export default {
         arrayContables : [],
         arrayActivos : [],
         totalActivos : 0,
-        idunidad:'OFNAL',
-        unidad:'OFICINA NACIONAL EMI',
+        idunidad:'',
+        unidad:'',
+        idrol:0,
+        titulo:'',
         arrayUnidad:[],
         modal : 0,
         errorAuxiliar : 0,
@@ -271,13 +273,15 @@ export default {
         },
   methods: {
     listarUnidad (){
-        let me=this;
-        var url= '/unidad/select';
-        axios.get(url).then( (response) =>{
+            let me=this;
+            var url= '/unidad/select';
+            axios.get(url).then( (response) =>{
             var respuesta= response.data;
             me.arrayUnidad = respuesta.unidad;
-            me.listarContables(me.idunidad);
-            //me.listarAuxiliar(1,me.codcont);
+            me.unidad = respuesta.descripcion;
+            me.idunidad = respuesta.idunidad;
+            me.idrol = respuesta.idrol;
+            me.titulo = respuesta.titulo;
         })
         .catch( (error)=> {
             console.log(error);
@@ -285,7 +289,7 @@ export default {
     },
     listarAuxiliar (page,buscar,criterio,cod_cont){
         let me=this;
-        var url= '/auxiliar?codcont='+ cod_cont +'&page=' + page + '&buscar='+ buscar + '&criterio='+ criterio;
+        var url= '/auxiliar?codcont='+ cod_cont +'&page=' + page + '&buscar='+ buscar + '&criterio='+ criterio + '&unidad='+ this.idunidad;
         axios.get(url).then( (response) =>{
             var respuesta= response.data;
             me.arrayAuxiliar = respuesta.auxiliares;
@@ -301,6 +305,7 @@ export default {
         axios.get(url).then( (response) =>{
             var respuesta= response.data;
             me.arrayContables = respuesta.codigos;
+            me.idunidad=respuesta.unidad;
             //me.detalleContable(this.codcont);
         })
         .catch( (error)=> {
@@ -355,7 +360,7 @@ export default {
         this.codcont=0;
         this.idunidad=(event.target.value);
         const res = this.arrayUnidad.find((unidad) => unidad.unidad == this.idunidad);
-        this.unidad= res.descrip;
+        this.titulo= res.descrip;
         this.listarContables(this.idunidad);
     },
     abrirlistado(data){
@@ -387,6 +392,7 @@ export default {
 
   mounted() {
     this.listarUnidad();
+    this.listarContables('');
   }
 }
 </script>

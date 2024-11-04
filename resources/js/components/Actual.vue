@@ -2,17 +2,17 @@
     <main class="app-content">
         <div class="app-title row">
                 <div class="col-md-8">
-                    <h1><i class="bi bi-collection"></i> Unidad: {{ unidad }}</h1> 
+                    <h1><i class="bi bi-collection"></i> Unidad: {{ titulo }}</h1> 
                 </div>
                 <div class="col-md-4">
-                    <select class="form-select" @change="onChangeUnidad($event)" v-model="idunidad">
+                    <select class="form-select" @change="onChangeUnidad($event)" v-model="idunidad" v-if="idrol==1">
                         <option v-for="unidad in arrayUnidad" :value="unidad.unidad" v-text="unidad.descrip"></option>
                     </select>
                 </div>
         </div>
         <div class="app-title">
             <h1><i class="fa fa-th-list"></i> Articulos</h1>
-            <button type="submit" @click="revisarNuevos()" class="btn btn-primary"><i class="fa fa-list-alt"></i> Actualizar Datos</button>
+            <button type="submit" @click="revisarNuevos()" class="btn btn-primary" v-if="idrol==1"><i class="fa fa-list-alt"></i> Actualizar Datos</button>
         </div>
         <div class="form-group row p-3 mb-2 bg-primary text-white">
             <div class="col-md-6">
@@ -243,18 +243,19 @@
                     articulo_id: 0,
                     popUp: false,
                     idArticulo:0,
-                    idrol:0,
                     total:0,
 
-                    idunidad:'OFNAL',
-                    unidad:'OFICINA NACIONAL EMI',
+                    arrayUnidad:[],
+                    unidad:'',
+                    idunidad:'',
+                    idrol:0,
+                    titulo:'',
 
                     arrayContables : [],
                     arrayAuxiliares : [],
                     selectedImages: [],
                     imagenes: [],
-                    arrayUnidad:[],
-
+                    
                     nombre : '',
                     
                     arrayArticulo : [],
@@ -311,19 +312,7 @@
                 }
             },
             methods : {
-                listarUnidad (){
-                    let me=this;
-                    var url= '/unidad/select';
-                    axios.get(url).then( (response) =>{
-                        var respuesta= response.data;
-                        me.arrayUnidad = respuesta.unidad;
-                        //me.listarContables(me.idunidad);
-                        //me.listarAuxiliar(1,me.codcont);
-                    })
-                    .catch( (error)=> {
-                        console.log(error);
-                    });
-                },
+                
                 listarbusqueda(page,buscar,criterio){
                     if (this.buscar=='') {
                         Swal.fire('Escriba un texto','','error');
@@ -340,6 +329,7 @@
                         me.pagination= respuesta.pagination;
                         me.idrol = respuesta.idrol;
                         me.total = respuesta.total;
+                        me.titulo = respuesta.titulo;
                     })
                     .catch( (error) => {
                         console.log(error);
@@ -528,15 +518,25 @@
                 getImageUrl(image) {
                     return `/images/${image.nombre}`;
                 },
+                listarUnidad (){
+                let me=this;
+                var url= '/unidad/select';
+                axios.get(url).then( (response) =>{
+                var respuesta= response.data;
+                me.arrayUnidad = respuesta.unidad;
+                me.unidad = respuesta.descripcion;
+                me.idunidad = respuesta.idunidad;
+                me.idrol = respuesta.idrol;
+                me.titulo = respuesta.titulo;
+            })
+            .catch( (error)=> {
+                console.log(error);
+            });
+        },
             },
-
-            components: {
-                   
-                },
             mounted() {
                 this.listarArticulo(1,this.buscar,this.criterio);
                 this.listarUnidad();
-                
             }
         }
     </script>

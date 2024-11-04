@@ -371,12 +371,12 @@ export default {
       }
       else if(this.checkContables.length == 0){
         let me = this;
-        me.pdf ='http://200.105.132.229:8080/actual/repAsignaciones?codofic=' + me.cod_ofi + '&codresp='+ me.cod_resp + '&codcont='+ me.codcont + '';
+        me.pdf ='http://emi.test/actual/repAsignaciones?codofic=' + me.cod_ofi + '&codresp='+ me.cod_resp + '&codcont='+ me.codcont + '';
         me.modalpdf = 1;
       }
       else{
         let me = this;
-        me.pdf ='http://200.105.132.229:8080/actual/repAsignaciones?codofic=' + me.cod_ofi + '&codresp='+ me.cod_resp + '&data='+ me.checkContables + '';
+        me.pdf ='http://emi.test/actual/repAsignaciones?codofic=' + me.cod_ofi + '&codresp='+ me.cod_resp + '&data='+ me.checkContables + '';
         me.modalpdf = 1;
       }
     },
@@ -390,12 +390,12 @@ export default {
       }
       else if(this.checkContables.length == 0){
         let me = this;
-        me.pdf='http://200.105.132.229:8080/actual/repDevoluciones?codofic=' + me.cod_ofi + '&codresp='+ me.cod_resp + '&codcont='+ me.codcont +  '';
+        me.pdf='http://emi.test/actual/repDevoluciones?codofic=' + me.cod_ofi + '&codresp='+ me.cod_resp + '&codcont='+ me.codcont +  '';
         me.modalpdf = 1;
       }
       else{
         let me = this;
-        me.pdf='http://200.105.132.229:8080/actual/repDevoluciones?codofic=' + me.cod_ofi + '&codresp='+ me.cod_resp + '&data='+ me.checkContables +  '';
+        me.pdf='http://emi.test/actual/repDevoluciones?codofic=' + me.cod_ofi + '&codresp='+ me.cod_resp + '&data='+ me.checkContables +  '';
         me.modalpdf = 1;
       }
     },

@@ -24,92 +24,293 @@ class ActualController extends Controller
 {
     public function index(Request $request)
     {   
-        $idrol = \Auth::user()->idrol;
         $buscar = $request->buscar;
         $criterio = $request->criterio;
-        $unidad = $request->unidad; 
-        $total = Actual::count('id');
-        $subquery = Actual::select('codigo', \DB::raw('MAX(id) as max_id'))->groupBy('codigo');
-        if ($buscar==''){
-            $actuales = Actual::joinSub($subquery, 'sub', function ($join) {
-                $join->on('actual.id', '=', 'sub.max_id');
-            })
-            ->join('codcont', 'actual.codcont', '=', 'codcont.codcont')
-            ->join('auxiliar', function ($join) {
-                $join->on('actual.codaux', '=', 'auxiliar.codaux');
-                $join->on('actual.codcont', '=', 'auxiliar.codcont');
-            })
-            ->join('oficina', 'actual.codofic', '=', 'oficina.codofic')
-            ->join('resp', function ($join) {
-                $join->on('actual.codresp', '=', 'resp.codresp');
-                $join->on('actual.codofic', '=', 'resp.codofic');
-            })
-            ->select('actual.id', 'actual.unidad', 'actual.codigo', 'codcont.nombre',
-                     'auxiliar.nomaux', 'actual.vidautil', 'oficina.nomofic', 'resp.nomresp',
-                     'actual.descripcion', 'actual.codestado', 'actual.estadoasignacion',
-                     'actual.dia', 'actual.mes', 'actual.año', 'actual.costo', 'actual.costo_ant',
-                     'actual.cod_rube', 'actual.codigosec', 'actual.observ', 'actual.codcont', 
-                     'actual.codaux')
-            ->where('actual.unidad','=',$unidad)
-            ->paginate(10);
-            return [
-                'pagination' => [
-                    'total'        => $actuales->total(),
-                    'current_page' => $actuales->currentPage(),
-                    'per_page'     => $actuales->perPage(),
-                    'last_page'    => $actuales->lastPage(),
-                    'from'         => $actuales->firstItem(),
-                    'to'           => $actuales->lastItem(),
-                ],
-                'actuales'=>$actuales,
-                'idrol'=>$idrol,
-                'total'=>$total
-                ];
+        $unidadv = $request->unidad;
+        $idrol = \Auth::user()->idrol;
+        $unidad = Responsables::select('unidad')->where('codresp','=',\Auth::user()->codresp)->where('codofic','=',\Auth::user()->codofic)->first();
+        if($idrol == 1){
+            if($unidadv == ''){
+                //usar unidad
+                $a = Unidadadmin::select('descrip')->where('unidad','=',$unidad->unidad)->first();
+                $b = Unidadadmin::select('ciudad')->where('unidad','=',$unidad->unidad)->first();
+                $titulo = $a->descrip.' - '.$b->ciudad;
+                $total = Actual::where('unidad','=',$unidad->unidad)->get();
+
+                if($buscar == ''){
+                    $actuales = Actual::join('unidadadmin','actual.unidad','=','unidadadmin.unidad')
+                    ->join('oficina', function ($join) {
+                        $join->on('unidadadmin.unidad', '=', 'oficina.unidad');
+                        $join->on('actual.codofic', '=', 'oficina.codofic');
+                    })
+                    ->join('resp', function ($join) {
+                                $join->on('unidadadmin.unidad', '=', 'resp.unidad');
+                                $join->on('resp.codofic', '=', 'oficina.codofic');
+                                $join->on('actual.codresp', '=', 'resp.codresp');
+                                $join->on('actual.codofic', '=', 'resp.codofic');
+                            })
+                    ->join('codcont','actual.codcont','=','codcont.codcont')
+                    ->join('auxiliar', function ($join) {
+                        $join->on('unidadadmin.unidad', '=', 'auxiliar.unidad');
+                        $join->on('auxiliar.codcont', '=', 'codcont.codcont');
+                        $join->on('actual.codaux', '=', 'auxiliar.codaux');
+                        $join->on('actual.codcont', '=', 'auxiliar.codcont');
+                    })
+                    ->select('actual.id', 'actual.unidad', 'actual.codigo', 'codcont.nombre',
+                            'auxiliar.nomaux', 'actual.vidautil', 'oficina.nomofic', 'resp.nomresp',
+                            'actual.descripcion', 'actual.codestado', 'actual.estadoasignacion',
+                            'actual.dia', 'actual.mes', 'actual.año', 'actual.costo', 'actual.costo_ant',
+                            'actual.cod_rube', 'actual.codigosec', 'actual.observ', 'actual.codcont', 
+                            'actual.codaux')
+                    ->where('unidadadmin.unidad','=',$unidad->unidad)
+                    ->distinct()
+                    ->paginate(10);
+                    return [
+                        'pagination' => [
+                            'total'        => $actuales->total(),
+                            'current_page' => $actuales->currentPage(),
+                            'per_page'     => $actuales->perPage(),
+                            'last_page'    => $actuales->lastPage(),
+                            'from'         => $actuales->firstItem(),
+                            'to'           => $actuales->lastItem(),
+                        ],
+                        'actuales'=>$actuales,
+                        'total'=>$total->count(),
+                        'idrol'=>$idrol,
+                        'titulo'=>$titulo
+                        ];
+                }else{
+                    $actuales = Actual::join('unidadadmin','actual.unidad','=','unidadadmin.unidad')
+                    ->join('oficina', function ($join) {
+                        $join->on('unidadadmin.unidad', '=', 'oficina.unidad');
+                        $join->on('actual.codofic', '=', 'oficina.codofic');
+                    })
+                    ->join('resp', function ($join) {
+                                $join->on('unidadadmin.unidad', '=', 'resp.unidad');
+                                $join->on('resp.codofic', '=', 'oficina.codofic');
+                                $join->on('actual.codresp', '=', 'resp.codresp');
+                                $join->on('actual.codofic', '=', 'resp.codofic');
+                            })
+                    ->join('codcont','actual.codcont','=','codcont.codcont')
+                    ->join('auxiliar', function ($join) {
+                        $join->on('unidadadmin.unidad', '=', 'auxiliar.unidad');
+                        $join->on('auxiliar.codcont', '=', 'codcont.codcont');
+                        $join->on('actual.codaux', '=', 'auxiliar.codaux');
+                        $join->on('actual.codcont', '=', 'auxiliar.codcont');
+                    })
+                    ->select('actual.id', 'actual.unidad', 'actual.codigo', 'codcont.nombre',
+                            'auxiliar.nomaux', 'actual.vidautil', 'oficina.nomofic', 'resp.nomresp',
+                            'actual.descripcion', 'actual.codestado', 'actual.estadoasignacion',
+                            'actual.dia', 'actual.mes', 'actual.año', 'actual.costo', 'actual.costo_ant',
+                            'actual.cod_rube', 'actual.codigosec', 'actual.observ', 'actual.codcont', 
+                            'actual.codaux')
+                    ->where('unidadadmin.unidad','=',$unidad->unidad)
+                    ->where('actual.'.$criterio, 'like', '%'. $buscar . '%')
+                    ->distinct()
+                    ->paginate(10);
+                    return [
+                        'pagination' => [
+                            'total'        => $actuales->total(),
+                            'current_page' => $actuales->currentPage(),
+                            'per_page'     => $actuales->perPage(),
+                            'last_page'    => $actuales->lastPage(),
+                            'from'         => $actuales->firstItem(),
+                            'to'           => $actuales->lastItem(),
+                        ],
+                        'actuales'=>$actuales,
+                        'total'=>$total->count(),
+                        'idrol'=>$idrol,
+                        'titulo'=>$titulo
+                        ];
+                }
+            }else{
+                // usar unidadv
+                $a = Unidadadmin::select('descrip')->where('unidad','=',$unidadv)->first();
+                $b = Unidadadmin::select('ciudad')->where('unidad','=',$unidadv)->first();
+                $titulo = $a->descrip.' - '.$b->ciudad;
+                $total = Actual::where('unidad','=',$unidadv)->get();
+                if($buscar == ''){
+                    $actuales = Actual::join('unidadadmin','actual.unidad','=','unidadadmin.unidad')
+                                    ->join('oficina', function ($join) {
+                                        $join->on('unidadadmin.unidad', '=', 'oficina.unidad');
+                                        $join->on('actual.codofic', '=', 'oficina.codofic');
+                                    })
+                                    ->join('resp', function ($join) {
+                                                $join->on('unidadadmin.unidad', '=', 'resp.unidad');
+                                                $join->on('resp.codofic', '=', 'oficina.codofic');
+                                                $join->on('actual.codresp', '=', 'resp.codresp');
+                                                $join->on('actual.codofic', '=', 'resp.codofic');
+                                            })
+                                    ->join('codcont','actual.codcont','=','codcont.codcont')
+                                    ->join('auxiliar', function ($join) {
+                                        $join->on('unidadadmin.unidad', '=', 'auxiliar.unidad');
+                                        $join->on('auxiliar.codcont', '=', 'codcont.codcont');
+                                        $join->on('actual.codaux', '=', 'auxiliar.codaux');
+                                        $join->on('actual.codcont', '=', 'auxiliar.codcont');
+                                    })
+                                    ->select('actual.id', 'actual.unidad', 'actual.codigo', 'codcont.nombre',
+                                            'auxiliar.nomaux', 'actual.vidautil', 'oficina.nomofic', 'resp.nomresp',
+                                            'actual.descripcion', 'actual.codestado', 'actual.estadoasignacion',
+                                            'actual.dia', 'actual.mes', 'actual.año', 'actual.costo', 'actual.costo_ant',
+                                            'actual.cod_rube', 'actual.codigosec', 'actual.observ', 'actual.codcont', 
+                                            'actual.codaux')
+                                    ->where('unidadadmin.unidad','=',$unidadv)
+                                    ->distinct()
+                                    ->paginate(10);
+                    return [
+                        'pagination' => [
+                            'total'        => $actuales->total(),
+                            'current_page' => $actuales->currentPage(),
+                            'per_page'     => $actuales->perPage(),
+                            'last_page'    => $actuales->lastPage(),
+                            'from'         => $actuales->firstItem(),
+                            'to'           => $actuales->lastItem(),
+                        ],
+                        'actuales'=>$actuales,
+                        'total'=>$total->count(),
+                        'titulo'=>$titulo,
+                        'idrol'=>$idrol
+                        ];
+                }else{
+                    $actuales = Actual::join('unidadadmin','actual.unidad','=','unidadadmin.unidad')
+                                    ->join('oficina', function ($join) {
+                                        $join->on('unidadadmin.unidad', '=', 'oficina.unidad');
+                                        $join->on('actual.codofic', '=', 'oficina.codofic');
+                                    })
+                                    ->join('resp', function ($join) {
+                                                $join->on('unidadadmin.unidad', '=', 'resp.unidad');
+                                                $join->on('resp.codofic', '=', 'oficina.codofic');
+                                                $join->on('actual.codresp', '=', 'resp.codresp');
+                                                $join->on('actual.codofic', '=', 'resp.codofic');
+                                            })
+                                    ->join('codcont','actual.codcont','=','codcont.codcont')
+                                    ->join('auxiliar', function ($join) {
+                                        $join->on('unidadadmin.unidad', '=', 'auxiliar.unidad');
+                                        $join->on('auxiliar.codcont', '=', 'codcont.codcont');
+                                        $join->on('actual.codaux', '=', 'auxiliar.codaux');
+                                        $join->on('actual.codcont', '=', 'auxiliar.codcont');
+                                    })
+                                    ->select('actual.id', 'actual.unidad', 'actual.codigo', 'codcont.nombre',
+                                            'auxiliar.nomaux', 'actual.vidautil', 'oficina.nomofic', 'resp.nomresp',
+                                            'actual.descripcion', 'actual.codestado', 'actual.estadoasignacion',
+                                            'actual.dia', 'actual.mes', 'actual.año', 'actual.costo', 'actual.costo_ant',
+                                            'actual.cod_rube', 'actual.codigosec', 'actual.observ', 'actual.codcont', 
+                                            'actual.codaux')
+                                    ->where('unidadadmin.unidad','=',$unidadv)
+                                    ->where('actual.'.$criterio, 'like', '%'. $buscar . '%')
+                                    ->distinct()
+                                    ->paginate(10);
+                return [
+                    'pagination' => [
+                        'total'        => $actuales->total(),
+                        'current_page' => $actuales->currentPage(),
+                        'per_page'     => $actuales->perPage(),
+                        'last_page'    => $actuales->lastPage(),
+                        'from'         => $actuales->firstItem(),
+                        'to'           => $actuales->lastItem(),
+                    ],
+                    'actuales'=>$actuales,
+                    'total'=>$total->count(),
+                    'titulo'=>$titulo,
+                    'idrol'=>$idrol
+                    ];
+                }
+            }
+        }else{
+            $a = Unidadadmin::select('descrip')->where('unidad','=',$unidad->unidad)->first();
+            $b = Unidadadmin::select('ciudad')->where('unidad','=',$unidad->unidad)->first();
+            $titulo = $a->descrip.' - '.$b->ciudad;
+            $total = Actual::where('unidad','=',$unidad->unidad)->get();
+            if($buscar == '')
+            {
+                $actuales = Actual::join('unidadadmin','actual.unidad','=','unidadadmin.unidad')
+                                ->join('oficina', function ($join) {
+                                    $join->on('unidadadmin.unidad', '=', 'oficina.unidad');
+                                    $join->on('actual.codofic', '=', 'oficina.codofic');
+                                })
+                                ->join('resp', function ($join) {
+                                            $join->on('unidadadmin.unidad', '=', 'resp.unidad');
+                                            $join->on('resp.codofic', '=', 'oficina.codofic');
+                                            $join->on('actual.codresp', '=', 'resp.codresp');
+                                            $join->on('actual.codofic', '=', 'resp.codofic');
+                                        })
+                                ->join('codcont','actual.codcont','=','codcont.codcont')
+                                ->join('auxiliar', function ($join) {
+                                    $join->on('unidadadmin.unidad', '=', 'auxiliar.unidad');
+                                    $join->on('auxiliar.codcont', '=', 'codcont.codcont');
+                                    $join->on('actual.codaux', '=', 'auxiliar.codaux');
+                                    $join->on('actual.codcont', '=', 'auxiliar.codcont');
+                                })
+                                ->select('actual.id', 'actual.unidad', 'actual.codigo', 'codcont.nombre',
+                                        'auxiliar.nomaux', 'actual.vidautil', 'oficina.nomofic', 'resp.nomresp',
+                                        'actual.descripcion', 'actual.codestado', 'actual.estadoasignacion',
+                                        'actual.dia', 'actual.mes', 'actual.año', 'actual.costo', 'actual.costo_ant',
+                                        'actual.cod_rube', 'actual.codigosec', 'actual.observ', 'actual.codcont', 
+                                        'actual.codaux')
+                                ->where('unidadadmin.unidad','=',$unidad->unidad)
+                                ->distinct()
+                                ->paginate(10);
+                return [
+                    'pagination' => [
+                        'total'        => $actuales->total(),
+                        'current_page' => $actuales->currentPage(),
+                        'per_page'     => $actuales->perPage(),
+                        'last_page'    => $actuales->lastPage(),
+                        'from'         => $actuales->firstItem(),
+                        'to'           => $actuales->lastItem(),
+                    ],
+                    'actuales'=>$actuales,
+                    'total'=>$total->count(),
+                    'titulo'=>$titulo,
+                    'idrol'=>$idrol
+                    ];
+            }
+            else
+            {
+                $actuales = Actual::join('unidadadmin','actual.unidad','=','unidadadmin.unidad')
+                                    ->join('oficina', function ($join) {
+                                        $join->on('unidadadmin.unidad', '=', 'oficina.unidad');
+                                        $join->on('actual.codofic', '=', 'oficina.codofic');
+                                    })
+                                    ->join('resp', function ($join) {
+                                                $join->on('unidadadmin.unidad', '=', 'resp.unidad');
+                                                $join->on('resp.codofic', '=', 'oficina.codofic');
+                                                $join->on('actual.codresp', '=', 'resp.codresp');
+                                                $join->on('actual.codofic', '=', 'resp.codofic');
+                                            })
+                                    ->join('codcont','actual.codcont','=','codcont.codcont')
+                                    ->join('auxiliar', function ($join) {
+                                        $join->on('unidadadmin.unidad', '=', 'auxiliar.unidad');
+                                        $join->on('auxiliar.codcont', '=', 'codcont.codcont');
+                                        $join->on('actual.codaux', '=', 'auxiliar.codaux');
+                                        $join->on('actual.codcont', '=', 'auxiliar.codcont');
+                                    })
+                                    ->select('actual.id', 'actual.unidad', 'actual.codigo', 'codcont.nombre',
+                                            'auxiliar.nomaux', 'actual.vidautil', 'oficina.nomofic', 'resp.nomresp',
+                                            'actual.descripcion', 'actual.codestado', 'actual.estadoasignacion',
+                                            'actual.dia', 'actual.mes', 'actual.año', 'actual.costo', 'actual.costo_ant',
+                                            'actual.cod_rube', 'actual.codigosec', 'actual.observ', 'actual.codcont', 
+                                            'actual.codaux')
+                                    ->where('unidadadmin.unidad','=',$unidad->unidad)
+                                    ->where('actual.'.$criterio, 'like', '%'. $buscar . '%')
+                                    ->distinct()
+                                    ->paginate(10);
+                return [
+                    'pagination' => [
+                        'total'        => $actuales->total(),
+                        'current_page' => $actuales->currentPage(),
+                        'per_page'     => $actuales->perPage(),
+                        'last_page'    => $actuales->lastPage(),
+                        'from'         => $actuales->firstItem(),
+                        'to'           => $actuales->lastItem(),
+                    ],
+                    'actuales'=>$actuales,
+                    'total'=>$total->count(),
+                    'titulo'=>$titulo,
+                    'idrol'=>$idrol
+                    ];
+            }
         }
-        else{
-            $actuales = Actual::joinSub($subquery, 'sub', function ($join) {
-                $join->on('actual.id', '=', 'sub.max_id');
-            })
-            ->join('codcont', 'actual.codcont', '=', 'codcont.codcont')
-            ->join('auxiliar', function ($join) {
-                $join->on('actual.codaux', '=', 'auxiliar.codaux');
-                $join->on('actual.codcont', '=', 'auxiliar.codcont');
-            })
-            ->join('oficina', 'actual.codofic', '=', 'oficina.codofic')
-            ->join('resp', function ($join) {
-                $join->on('actual.codresp', '=', 'resp.codresp');
-                $join->on('actual.codofic', '=', 'resp.codofic');
-            })
-            ->select('actual.id', 'actual.unidad', 'actual.codigo', 'codcont.nombre',
-                     'auxiliar.nomaux', 'actual.vidautil', 'oficina.nomofic', 'resp.nomresp',
-                     'actual.descripcion', 'actual.codestado', 'actual.estadoasignacion',
-                     'actual.dia', 'actual.mes', 'actual.año', 'actual.costo', 'actual.costo_ant',
-                     'actual.cod_rube', 'actual.codigosec', 'actual.observ', 'actual.codcont', 
-                     'actual.codaux')
-            ->where('actual.'.$criterio, 'like', '%'. $buscar . '%')
-            ->groupBy('actual.codigo', 'actual.id', 'actual.unidad', 'codcont.nombre',
-                      'auxiliar.nomaux', 'actual.vidautil', 'oficina.nomofic', 'resp.nomresp',
-                      'actual.descripcion', 'actual.codestado', 'actual.estadoasignacion',
-                      'actual.dia', 'actual.mes', 'actual.año', 'actual.costo', 'actual.costo_ant',
-                      'actual.cod_rube', 'actual.codigosec', 'actual.observ', 'actual.codcont', 
-                      'actual.codaux')
-            ->where('actual.unidad','=',$unidad)
-            ->paginate(10);
-            return [
-                'pagination' => [
-                    'total'        => $actuales->total(),
-                    'current_page' => $actuales->currentPage(),
-                    'per_page'     => $actuales->perPage(),
-                    'last_page'    => $actuales->lastPage(),
-                    'from'         => $actuales->firstItem(),
-                    'to'           => $actuales->lastItem(),
-                ],
-                'actuales'=>$actuales,
-                'idrol'=>$idrol
-                ];  
-        }
-        
-    
     }
     public function show($id)
     {

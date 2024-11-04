@@ -41,7 +41,6 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
          * Login Routes
          */
         
-        
 
         Route::get('/actuales/actualver/{id}', 'ActualController@verinvitado')->name('actuales.actualver');
 

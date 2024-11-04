@@ -1,9 +1,19 @@
 <template>
     <main class="app-content">
+        <div class="app-title row">
+             <div class="col-md-8">
+                <h1><i class="bi bi-collection"></i> Unidad: <p v-text="titulo"></p></h1> 
+             </div>
+             <div class="col-md-4">
+                 <select class="form-select" @change="onChangeUnidad($event)" v-model="idunidad" v-if="idrol==1">
+                     <option v-for="unidad in arrayUnidad" :value="unidad.unidad" v-text="unidad.descrip"></option>
+                 </select>
+             </div>
+      </div>
         <div class="app-title">
             <h1><i class="bi bi-person-fill"></i> Responsables</h1>
             <br>
-            <button type="submit" @click="revisarNuevos()" class="btn btn-primary"><i class="bi bi-arrow-clockwise"></i> Actualizar Datos</button>
+            <button type="submit" @click="revisarNuevos()" class="btn btn-primary" v-if="idrol==1"><i class="bi bi-arrow-clockwise"></i> Actualizar Datos</button>
         </div>
         <div class="form-group row p-3 mb-2 bg-primary text-white">
             <div class="col-md-6">
@@ -173,6 +183,12 @@ import { setTransitionHooks } from 'vue';
 export default {
   data() {
     return {
+        idunidad:'',
+        unidad:'',
+        titulo:'',
+        idrol:0,
+        arrayUnidad:[],
+
       id:0,
       codresp: 0,
       codofic:0,
@@ -231,9 +247,30 @@ export default {
             }
         },
   methods: {
+    listarUnidad (){
+            let me=this;
+            var url= '/unidad/select';
+            axios.get(url).then( (response) =>{
+            var respuesta= response.data;
+            me.arrayUnidad = respuesta.unidad;
+            me.unidad = respuesta.descripcion;
+            me.idunidad = respuesta.idunidad;
+            me.idrol = respuesta.idrol;
+            me.titulo = respuesta.titulo;
+        })
+        .catch( (error)=> {
+            console.log(error);
+        });
+    },
+    onChangeUnidad(event){
+        this.idunidad=(event.target.value);
+        const res = this.arrayUnidad.find((unidad) => unidad.unidad == this.idunidad);
+        this.titulo= res.descrip;
+        //this.listarContables(this.idunidad);
+    },
     listarPersona (page,buscar,criterio){
         let me=this;
-        var url= '/responsable?page=' + page + '&buscar='+ buscar + '&criterio='+ criterio;
+        var url= '/responsable?page=' + page + '&buscar='+ buscar + '&criterio='+ criterio + '&unidad' + this.unidad;
         axios.get(url).then( (response) =>{
             var respuesta= response.data;
             me.arrayPersona = respuesta.responsables.data;

@@ -2,10 +2,10 @@
     <main class="app-content">
       <div class="app-title row">
              <div class="col-md-8">
-                <h1><i class="bi bi-collection"></i> Unidad: <p v-text="unidad"></p></h1> 
+                <h1><i class="bi bi-collection"></i> Unidad: <p v-text="titulo"></p></h1> 
              </div>
              <div class="col-md-4">
-                 <select class="form-select" @change="onChangeUnidad($event)" v-model="idunidad">
+                 <select class="form-select" @change="onChangeUnidad($event)" v-model="idunidad" v-if="idrol==1">
                      <option v-for="unidad in arrayUnidad" :value="unidad.unidad" v-text="unidad.descrip"></option>
                  </select>
              </div>
@@ -16,7 +16,7 @@
                 <div class="card-header row">
                     <div class="col-md-10"><h3 class="text-center font-weight-light my-4"> Oficina: </h3></div>
                     <div class="col-md-2">
-                        <p class="bs-component d-grid"><button type="submit" @click="revisarNuevos()" class="btn btn-primary btn-block"><i class="bi bi-arrow-clockwise"></i> Actualizar Datos</button></p>
+                        <p class="bs-component d-grid"><button type="submit" @click="revisarNuevos()" class="btn btn-primary btn-block" v-if="idrol==1"><i class="bi bi-arrow-clockwise"></i> Actualizar Datos</button></p>
                     </div>
                 </div>
 
@@ -95,7 +95,7 @@
                     </p>
                 </div>
                 <div class="col-md-2">
-                    <p class="bs-component d-grid"><button type="submit" @click="revisarResponsable()" class="btn btn-primary btn-block"><i class="bi bi-arrow-clockwise"></i> Actualizar Datos</button></p>
+                    <p class="bs-component d-grid"><button type="submit" @click="revisarResponsable()" class="btn btn-primary btn-block" v-if="idrol==1"><i class="bi bi-arrow-clockwise"></i> Actualizar Datos</button></p>
                 </div>
             </div>
         </div>
@@ -387,8 +387,10 @@ export default {
         nomofic:'',
         observacion:'',
 
-        idunidad:'OFNAL',
-        unidad:'OFICINA NACIONAL EMI',
+        idunidad:'',
+        unidad:'',
+        titulo:'',
+        idrol:0,
 
         nombre_responsable:'',
         codresp:0,
@@ -459,13 +461,15 @@ export default {
         },
   methods: {
     listarUnidad (){
-        let me=this;
-        var url= '/unidad/select';
-        axios.get(url).then( (response) =>{
+            let me=this;
+            var url= '/unidad/select';
+            axios.get(url).then( (response) =>{
             var respuesta= response.data;
             me.arrayUnidad = respuesta.unidad;
-            //me.listarContables(me.idunidad);
-            //me.listarAuxiliar(1,me.codcont);
+            me.unidad = respuesta.descripcion;
+            me.idunidad = respuesta.idunidad;
+            me.idrol = respuesta.idrol;
+            me.titulo = respuesta.titulo;
         })
         .catch( (error)=> {
             console.log(error);
@@ -534,7 +538,7 @@ export default {
         this.arrayPersona=[];
         this.idunidad=(event.target.value);
         const res = this.arrayUnidad.find((unidad) => unidad.unidad == this.idunidad);
-        this.unidad= res.descrip;
+        this.titulo= res.descrip;
         //this.listarContables(this.idunidad);
     },
     cambiarPagina(page,buscar,criterio){

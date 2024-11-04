@@ -24,6 +24,7 @@ import RepLogs from './components/RepLogs.vue'
 import HistorialAsig from './components/HistorialAsignaciones.vue'
 import bbdd from './components/bbdd.vue'
 import bajas from './components/Bajas.vue'
+//import globalMixin from './components/globales.js';
 
 const app = createApp({ 
   setup() {
@@ -58,6 +59,7 @@ app.component("replogs",RepLogs);
 app.component("historialasignaciones",HistorialAsig);
 app.component("bbdd",bbdd);
 app.component("bajas",bajas);
+//app.mixin(globalMixin);
 const vfm = createVfm()
 app.use(vfm)
   .mount('#app')

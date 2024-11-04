@@ -27,7 +27,7 @@ export default {
   },
   methods: {
     viafzip(){
-      window.open('http://200.105.132.229:8080/download-zipvsiaf');
+      window.open('http://emi.test/download-zipvsiaf');
     }
   }
 }

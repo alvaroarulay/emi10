@@ -16,26 +16,76 @@ class ResponsablesController extends Controller
 {
     public function index(Request $request)
     {
-        //if (!$request->ajax()) return redirect('/');
         $buscar = $request->buscar;
         $criterio = $request->criterio;
         $total = Responsables::count('id');
-        if ($buscar==''){
-            $responsables = Responsables::join('oficina','resp.codofic','=','oficina.codofic')
-            ->join('cla_depts','resp.cod_exp','=', 'cla_depts.id')
-            ->select('resp.id','resp.codofic','resp.codresp','resp.nomresp','resp.cargo','resp.estado',
-            'resp.ci','cla_depts.sigla','oficina.nomofic','resp.api_estado','resp.cod_exp')->distinct('resp.id')->paginate(10);
+        $idrol = \Auth::user()->idrol;
+        //$unidad = $request->unidad;
+        $unidad = Responsables::select('unidad')->where('codresp','=',\Auth::user()->codresp)->where('codofic','=',\Auth::user()->codofic)->first();
+        $a = Unidadadmin::select('descrip')->where('unidad','=',$unidad->unidad)->first();
+        $b = Unidadadmin::select('ciudad')->where('unidad','=',$unidad->unidad)->first();
+        $titulo = $a->descrip.' - '.$b->ciudad;
+        if($idrol == 1){
+            
+            if ($buscar==''){
+                $responsables = Responsables::join('unidadadmin','unidadadmin.unidad','=','resp.unidad')
+                            ->join('oficina', function ($join) {
+                                $join->on('unidadadmin.unidad', '=', 'oficina.unidad');
+                                $join->on('resp.codofic', '=', 'oficina.codofic');
+                            })
+                            ->join('cla_depts','resp.cod_exp','=', 'cla_depts.id')
+                            ->select('resp.id','resp.codofic','resp.codresp','resp.nomresp','resp.cargo','resp.estado',
+                            'resp.ci','cla_depts.sigla','oficina.nomofic','resp.api_estado','resp.cod_exp')
+                            ->where('resp.unidad','=',$unidad->unidad)
+                            ->distinct()
+                            ->paginate(10);
+            
+            }
+            else{
+                $responsables = Responsables::join('unidadadmin','unidadadmin.unidad','=','resp.unidad')
+                            ->join('oficina', function ($join) {
+                                $join->on('unidadadmin.unidad', '=', 'oficina.unidad');
+                                $join->on('resp.codofic', '=', 'oficina.codofic');
+                            })
+                            ->join('cla_depts','resp.cod_exp','=', 'cla_depts.id')
+                            ->select('resp.id','resp.codofic','resp.codresp','resp.nomresp','resp.cargo','resp.estado',
+                            'resp.ci','cla_depts.sigla','oficina.nomofic','resp.api_estado','resp.cod_exp')
+                            ->where('resp.unidad','=',$unidad)
+                            ->distinct()
+                            ->where($criterio, 'like', '%'. $buscar . '%')->orderBy('id', 'desc')
+                            ->paginate(10);
+              
+            }
         }
         else{
-            $responsables = Responsables::join('oficina','resp.codofic','=','oficina.codofic')
-            ->join('cla_depts','resp.cod_exp','=', 'cla_depts.id')
-            ->select('resp.id','resp.codofic','resp.codresp','resp.nomresp','resp.cargo','resp.estado',
-            'resp.ci','cla_depts.sigla','oficina.nomofic','resp.api_estado','resp.cod_exp')->distinct('resp.id')
-            ->where($criterio, 'like', '%'. $buscar . '%')->orderBy('id', 'desc')
-            ->paginate(10);
+             if ($buscar==''){
+                $responsables = Responsables::join('unidadadmin','unidadadmin.unidad','=','resp.unidad')
+                            ->join('oficina', function ($join) {
+                                $join->on('unidadadmin.unidad', '=', 'oficina.unidad');
+                                $join->on('resp.codofic', '=', 'oficina.codofic');
+                            })
+                            ->join('cla_depts','resp.cod_exp','=', 'cla_depts.id')
+                            ->select('resp.id','resp.codofic','resp.codresp','resp.nomresp','resp.cargo','resp.estado',
+                            'resp.ci','cla_depts.sigla','oficina.nomofic','resp.api_estado','resp.cod_exp')
+                            ->where('resp.unidad','=',$unidad->unidad)
+                            ->distinct()
+                ->paginate(10);
+            }
+            else{
+                $responsables = Responsables::join('unidadadmin','unidadadmin.unidad','=','resp.unidad')
+                            ->join('oficina', function ($join) {
+                                $join->on('unidadadmin.unidad', '=', 'oficina.unidad');
+                                $join->on('resp.codofic', '=', 'oficina.codofic');
+                            })
+                            ->join('cla_depts','resp.cod_exp','=', 'cla_depts.id')
+                            ->select('resp.id','resp.codofic','resp.codresp','resp.nomresp','resp.cargo','resp.estado',
+                            'resp.ci','cla_depts.sigla','oficina.nomofic','resp.api_estado','resp.cod_exp')
+                            ->where('resp.unidad','=',$unidad->unidad)
+                            ->distinct()
+                ->where($criterio, 'like', '%'. $buscar . '%')->orderBy('id', 'desc')
+                ->paginate(10);
+            }
         }
-        
-
         return [
             'pagination' => [
                 'total'        => $responsables->total(),
@@ -46,7 +96,9 @@ class ResponsablesController extends Controller
                 'to'           => $responsables->lastItem(),
             ],
             'responsables' => $responsables,
-            'total' => $total
+            'total' => $total,
+            'idrol' => $idrol,
+            'titulo' => $titulo
         ];
     }
     public function buscarRespActivo(Request $request){
@@ -81,7 +133,10 @@ class ResponsablesController extends Controller
                 'from'         => $responsables->firstItem(),
                 'to'           => $responsables->lastItem(),
             ],
-            'responsables' => $responsables
+            'responsables' => $responsables,
+            'total' => $total,
+            'idrol' => $idrol,
+            'titulo' => $titulo
         ];
     }
     public function store(Request $request)
@@ -281,14 +336,14 @@ class ResponsablesController extends Controller
         $buscar = $request->buscar;
         $criterio = $request->criterio;
         if($buscar==''){
-            $responsables = Responsables::where('resp.codofic','=',$codofic)
+            $responsables = Responsables::where('resp.codofic','=',$codofic)->where('resp.unidad','=',$unidad)
             ->get();
              return [
                 'responsables' => $responsables,
                 'total'=>$responsables->count()
                 ];
         }else{
-            $responsables = Responsables::where('resp.codofic','=',$codofic)
+            $responsables = Responsables::where('resp.codofic','=',$codofic)->where('resp.unidad','=',$unidad)
             ->where('resp.'.$criterio, 'like', '%'. $buscar . '%')
             ->get();
              return [

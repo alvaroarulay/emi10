@@ -4,23 +4,16 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Unidadadmin;
-use XBase\TableCreator;
-use XBase\TableEditor;
-use XBase\TableReader;
+use App\Models\Responsables;
 
 class UnidadadminController extends Controller
 {
-    protected $unidadadmin;
-
-    public function __construct(Unidadadmin $unidadadmin)
-    {
-        $this->unidadadmin = $unidadadmin;
-    }
     public function index()
     {
+       
         $unidad = Unidadadmin::All();
         return [
-            'unidad' => $unidad
+            'unidad'=>$unidad
         ];
     }
     public function update(Request $request){
@@ -38,7 +31,18 @@ class UnidadadminController extends Controller
          return response()->json(['message' => 'Datos Actualizados Correctamente!!!']);
     }
     public function selectUnidad(){
-        $unidad = Unidadadmin::select('id','unidad','descrip')->where('estado','=',1)->get();
-        return['unidad'=>$unidad];
+        $idrol = \Auth::user()->idrol;
+        $unidad = Responsables::select('unidad')->where('codresp','=',\Auth::user()->codresp)->where('codofic','=',\Auth::user()->codofic)->first();
+        $a = Unidadadmin::select('descrip')->where('unidad','=',$unidad->unidad)->first();
+        $b = Unidadadmin::select('ciudad')->where('unidad','=',$unidad->unidad)->first();
+        $titulo = $a->descrip.' - '.$b->ciudad;
+        $unidad1 = Unidadadmin::select('id','unidad','descrip')->where('estado','=',1)->get();
+        return [
+            'unidad'=>$unidad1,
+            'titulo' => $titulo,
+            'idrol' => $idrol,
+            'descripcion' => $a->descrip,
+            'idunidad' => $unidad->unidad
+        ];
     }
 }

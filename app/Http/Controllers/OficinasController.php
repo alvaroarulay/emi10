@@ -22,10 +22,15 @@ class OficinasController extends Controller
         $unidad = $request->unidad;
 
         if ($buscar==''){
-            $oficinas = Oficinas::select('oficina.id','oficina.codofic','oficina.nomofic','oficina.api_estado','oficina.observ')->paginate(10);
+            $oficinas = Oficinas::select('oficina.id','oficina.codofic','oficina.nomofic','oficina.api_estado','oficina.observ')
+            ->distinct()
+            ->where('oficina.unidad','=',$unidad)
+            ->paginate(10);
         }
         else{
             $oficinas = Oficinas::select('oficina.id','oficina.codofic','oficina.nomofic','oficina.api_estado','oficina.observ')
+            ->distinct()
+            ->where('oficina.unidad','=',$unidad)
             ->where($criterio, 'like', '%'. $buscar . '%')->orderBy('id', 'desc')
             ->paginate(10);
         }
